@@ -109,11 +109,11 @@ export class Game {
 	}
 
 	restart(diff: string = this.difficulty) {
-		const difficulty = getDiff(diff);
-		this.log("New Game " + difficulty);
-		this.cols = difficulties[difficulty].cols;
-		this.rows = difficulties[difficulty].rows;
-		this.mines = difficulties[difficulty].mines;
+		this.difficulty = getDiff(diff);
+		this.log("Game Restarted " + this.difficulty);
+		this.cols = difficulties[this.difficulty].cols;
+		this.rows = difficulties[this.difficulty].rows;
+		this.mines = difficulties[this.difficulty].mines;
 		this.minesLeft = this.mines;
 		this.minesLocations.length = 0;
 		this._gameOver = false;
