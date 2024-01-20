@@ -350,8 +350,12 @@ export class Game {
 			return `Terminal too small!\nTerminal should be at least ${this.cols}x${this.rows}\n`;
 		}
 
-		let output = `Mines Left: ${this.minesLeft}\n`;
-		// scale is 3 in x and 1 in y
+		let output = `Mines Left: ${this.minesLeft}`;
+
+		if (this._gameWon) output += "\tYou Won! 🎉\n";
+		else if (this._gameOver) output += "\tGame Over! 💀\n";
+		else output += "\n";
+
 		for (let row = 0; row < this.rows; row++) {
 			let curr_line = "";
 
@@ -364,12 +368,6 @@ export class Game {
 
 		output += "\n";
 		output += `Time: ${this.timef}\n`;
-
-		if (this._gameWon) {
-			output += "You Won!\n";
-		} else if (this._gameOver) {
-			output += "Game Over!\n";
-		}
 
 		return output;
 	}
