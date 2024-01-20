@@ -36,67 +36,70 @@ function main() {
 	stdin.on("keypress", keyHandler.eventHandler.bind(keyHandler));
 	game = new Game(diff, noColor, debug);
 
-	keyHandler.handleKey(
-		"c",
-		() => {
+	{
+		// keybindings
+		keyHandler.handleKey(
+			"c",
+			() => {
+				console.clear();
+				stdout.write("Exiting...\n");
+				process.exit(0);
+			},
+			{
+				ctrl: true,
+			}
+		);
+
+		keyHandler.handleKey("q", () => {
 			console.clear();
 			stdout.write("Exiting...\n");
 			process.exit(0);
-		},
-		{
-			ctrl: true,
-		}
-	);
+		});
 
-	keyHandler.handleKey("q", () => {
-		console.clear();
-		stdout.write("Exiting...\n");
-		process.exit(0);
-	});
+		keyHandler.handleKey("up", () => {
+			game.move("up");
+		});
 
-	keyHandler.handleKey("up", () => {
-		game.move("up");
-	});
+		keyHandler.handleKey("down", () => {
+			game.move("down");
+		});
 
-	keyHandler.handleKey("down", () => {
-		game.move("down");
-	});
+		keyHandler.handleKey("left", () => {
+			game.move("left");
+		});
 
-	keyHandler.handleKey("left", () => {
-		game.move("left");
-	});
+		keyHandler.handleKey("right", () => {
+			game.move("right");
+		});
 
-	keyHandler.handleKey("right", () => {
-		game.move("right");
-	});
+		keyHandler.handleKey("a", () => {
+			game.flag();
+		});
 
-	keyHandler.handleKey("a", () => {
-		game.flag();
-	});
+		keyHandler.handleKey("s", () => {
+			game.reveal();
+		});
 
-	keyHandler.handleKey("s", () => {
-		game.reveal();
-	});
+		keyHandler.handleKey("d", () => {
+			game.question();
+		});
 
-	keyHandler.handleKey("d", () => {
-		game.question();
-	});
+		keyHandler.handleKey("r", () => {
+			game.restart();
+		});
 
-	keyHandler.handleKey("r", () => {
-		game.restart();
-	});
+		keyHandler.handleKey("1", () => {
+			game.restart("easy");
+		});
 
-	keyHandler.handleKey("1", () => {
-		game.restart("easy");
-	});
+		keyHandler.handleKey("2", () => {
+			game.restart("medium");
+		});
 
-	keyHandler.handleKey("2", () => {
-		game.restart("medium");
-	});
-
-	keyHandler.handleKey("3", () => {
-		game.restart("hard");
-	});
+		keyHandler.handleKey("3", () => {
+			game.restart("hard");
+		});
+	}
 
 	console.clear();
 	render(Date.now());
