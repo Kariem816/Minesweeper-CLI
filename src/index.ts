@@ -83,7 +83,19 @@ function main() {
 	});
 
 	keyHandler.handleKey("r", () => {
-		game = new Game("easy", noColor, debug);
+		game.restart();
+	});
+
+	keyHandler.handleKey("1", () => {
+		game.restart("easy");
+	});
+
+	keyHandler.handleKey("2", () => {
+		game.restart("medium");
+	});
+
+	keyHandler.handleKey("3", () => {
+		game.restart("hard");
 	});
 
 	console.clear();
@@ -110,6 +122,9 @@ async function render(ts: number) {
 	stdout.write(game.render(size));
 	stdout.write(
 		"\n\nControls:\n\tArrow keys - move\n\tA - flag\n\tS - reveal\n\tR - reset\n\tQ - exit"
+	);
+	stdout.write(
+		`\n\nChange Difficulity:\n\t1 - easy\n\t2 - medium\n\t3 - hard\n\n`
 	);
 	if (debug) stdout.write(`\n\nFPS: ${Math.round(1 / dt)}`);
 

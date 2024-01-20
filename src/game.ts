@@ -9,11 +9,13 @@ export type Board = Cell[][];
 export type BoardNumber = number[][];
 export type BoardState = CellState[][];
 
+const FLAG = "⚑";
+const QUESTION = "?";
+const MINE = "X";
+const HIDDEN = ".";
+
 function log(text: string) {
-	fs.appendFileSync(
-		"game.this.log",
-		`${new Date().toLocaleString()}: ${text}\n`
-	);
+	fs.appendFileSync("game.log", `${new Date().toLocaleString()}: ${text}\n`);
 }
 
 // 8 colors ranging from bright to dark (brightest to darkest) from chalk
@@ -21,7 +23,7 @@ const colors = [
 	chalk.inverse,
 	chalk.cyan,
 	chalk.greenBright,
-	chalk.redBright,
+	chalk.yellowBright,
 	chalk.blueBright,
 	chalk.magentaBright,
 	chalk.cyan.dim,
@@ -45,11 +47,11 @@ function getDiff(diff: string): Difficulty {
 	throw new Error("Invalid difficulty");
 }
 
-const hiddenCell = () => ".";
+const hiddenCell = () => HIDDEN;
 const revealedEmptyCell = (num: number | string) => num || " ";
-const revealedMineCell = () => "X";
-const flaggedCell = () => "/";
-const questionedCell = () => "?";
+const revealedMineCell = () => MINE;
+const flaggedCell = () => FLAG;
+const questionedCell = () => QUESTION;
 
 function cellToChar(cell: Cell, number: number, state: CellState) {
 	switch (state) {
@@ -69,6 +71,7 @@ function cellToChar(cell: Cell, number: number, state: CellState) {
 }
 
 export class Game {
+	public difficulty: Difficulty;
 	private cols: number;
 	private rows: number;
 	private cursor = new V2(0, 0);
@@ -88,11 +91,11 @@ export class Game {
 		private noColor = false,
 		public enableLog = false
 	) {
-		const difficulty = getDiff(diff);
-		this.log("New Game " + difficulty);
-		this.cols = difficulties[difficulty].cols;
-		this.rows = difficulties[difficulty].rows;
-		this.mines = difficulties[difficulty].mines;
+		this.difficulty = getDiff(diff);
+		this.log("New Game " + this.difficulty);
+		this.cols = difficulties[this.difficulty].cols;
+		this.rows = difficulties[this.difficulty].rows;
+		this.mines = difficulties[this.difficulty].mines;
 		this.minesLeft = this.mines;
 		this.minesLocations = [];
 		this._gameOver = false;
@@ -102,6 +105,24 @@ export class Game {
 		this.board = [];
 		this.boardNumber = [];
 		this.boardState = [];
+		this.createBoard();
+	}
+
+	restart(diff: string = this.difficulty) {
+		const difficulty = getDiff(diff);
+		this.log("New Game " + difficulty);
+		this.cols = difficulties[difficulty].cols;
+		this.rows = difficulties[difficulty].rows;
+		this.mines = difficulties[difficulty].mines;
+		this.minesLeft = this.mines;
+		this.minesLocations.length = 0;
+		this._gameOver = false;
+		this._gameWon = false;
+		this.startTime = 0;
+		this.endTime = 0;
+		this.board.length = 0;
+		this.boardNumber.length = 0;
+		this.boardState.length = 0;
 		this.createBoard();
 	}
 
@@ -252,27 +273,27 @@ export class Game {
 		let renderFn: (x: string) => string;
 
 		switch (cell) {
-			case "?":
+			case QUESTION:
 				renderFn = this.noColor ? () => cell : chalk.blue;
 				break;
-			case "/":
-				renderFn = this.noColor ? () => cell : chalk.yellow;
+			case FLAG:
+				renderFn = this.noColor ? () => cell : chalk.red;
 				break;
-			case "X":
+			case MINE:
 				renderFn = this.noColor ? () => cell : chalk.white;
 				break;
-			case ".":
+			case HIDDEN:
 				renderFn = this.noColor ? () => cell : chalk.gray;
 				break;
-			case " ":
+			case " ": // empty cell (0)
 				renderFn = this.noColor ? () => cell : chalk.white;
 				break;
-			default:
+			default: // number cell (1-8)
 				renderFn = this.noColor ? () => cell : colors[parseInt(cell)];
 				break;
 		}
 
-		if (row === cursorRow && col === cursorCol) {
+		if (!this._gameOver && row === cursorRow && col === cursorCol) {
 			return renderFn("[" + cell + "]");
 		} else {
 			return renderFn(" " + cell + " ");
