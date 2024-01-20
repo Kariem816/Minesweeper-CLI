@@ -236,6 +236,45 @@ export class Game {
 			}
 
 			this.checkWin();
+		} else if (
+			this.boardState[row][col] === "revealed" &&
+			this.boardNumber[row][col] !== 0
+		) {
+			let flagged = 0;
+			for (let y = row - 1; y <= row + 1; y++) {
+				for (let x = col - 1; x <= col + 1; x++) {
+					if (
+						y >= 0 &&
+						y < this.rows &&
+						x >= 0 &&
+						x < this.cols &&
+						!(y === row && x === col)
+					) {
+						// If cell is in bounds
+						if (this.boardState[y][x] === "flagged") {
+							flagged++;
+						}
+					}
+				}
+			}
+
+			if (flagged === this.boardNumber[row][col]) {
+				for (let y = row - 1; y <= row + 1; y++) {
+					for (let x = col - 1; x <= col + 1; x++) {
+						if (
+							y >= 0 &&
+							y < this.rows &&
+							x >= 0 &&
+							x < this.cols &&
+							!(y === row && x === col) &&
+							this.boardState[y][x] === "hidden"
+						) {
+							// If cell is in bounds
+							this.reveal(new V2(x, y));
+						}
+					}
+				}
+			}
 		}
 	}
 
