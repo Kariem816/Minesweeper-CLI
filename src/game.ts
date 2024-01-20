@@ -311,25 +311,29 @@ export class Game {
 
 		let renderFn: (x: string) => string;
 
-		switch (cell) {
-			case QUESTION:
-				renderFn = this.noColor ? () => cell : chalk.blue;
-				break;
-			case FLAG:
-				renderFn = this.noColor ? () => cell : chalk.red;
-				break;
-			case MINE:
-				renderFn = this.noColor ? () => cell : chalk.white;
-				break;
-			case HIDDEN:
-				renderFn = this.noColor ? () => cell : chalk.gray;
-				break;
-			case " ": // empty cell (0)
-				renderFn = this.noColor ? () => cell : chalk.white;
-				break;
-			default: // number cell (1-8)
-				renderFn = this.noColor ? () => cell : colors[parseInt(cell)];
-				break;
+		if (this.noColor) {
+			renderFn = (x) => x;
+		} else {
+			switch (cell) {
+				case QUESTION:
+					renderFn = chalk.blue;
+					break;
+				case FLAG:
+					renderFn = chalk.red;
+					break;
+				case MINE:
+					renderFn = chalk.white;
+					break;
+				case HIDDEN:
+					renderFn = chalk.gray;
+					break;
+				case " ": // empty cell (0)
+					renderFn = chalk.white;
+					break;
+				default: // number cell (1-8)
+					renderFn = colors[parseInt(cell)];
+					break;
+			}
 		}
 
 		if (!this._gameOver && row === cursorRow && col === cursorCol) {
