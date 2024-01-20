@@ -24,9 +24,11 @@ function handleResize() {
 }
 
 function main() {
+	const diff = process.argv[2];
+
 	stdout.on("resize", handleResize);
 	stdin.on("keypress", keyHandler.eventHandler.bind(keyHandler));
-	game = new Game("easy");
+	game = new Game(diff || "easy");
 
 	keyHandler.handleKey(
 		"c",

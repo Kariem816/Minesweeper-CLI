@@ -24,6 +24,14 @@ const difficulties: {
 	hard: { cols: 30, rows: 16, mines: 99 },
 };
 
+function getDiff(diff: string): Difficulty {
+	if (diff in difficulties) {
+		return diff as Difficulty;
+	}
+
+	throw new Error("Invalid difficulty");
+}
+
 const hiddenCell = () => ".";
 const revealedEmptyCell = (num: number | string) => num || " ";
 const revealedMineCell = () => "X";
@@ -62,7 +70,8 @@ export class Game {
 	private startTime: number;
 	private endTime: number;
 
-	constructor(difficulty: Difficulty, public enableLog = false) {
+	constructor(diff: string, public enableLog = false) {
+		const difficulty = getDiff(diff);
 		this.log("New Game " + difficulty);
 		this.cols = difficulties[difficulty].cols;
 		this.rows = difficulties[difficulty].rows;
