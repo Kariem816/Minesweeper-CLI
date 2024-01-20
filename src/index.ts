@@ -1,6 +1,5 @@
 import readline from "readline";
 
-// import { Game } from "./game.js";
 import { KeyHandler } from "./keyhandlers.js";
 import { Game } from "./game.js";
 import { V2 } from "./math.js";
@@ -18,17 +17,24 @@ else throw new Error("stdin is not a TTY");
 const keyHandler = new KeyHandler();
 let game: Game;
 let size = new V2(stdout.columns, stdout.rows);
+let debug = false;
 
 function handleResize() {
 	size = new V2(stdout.columns, stdout.rows);
 }
 
+function cmdContains(arg: string) {
+	return process.argv.includes(arg);
+}
+
 function main() {
-	const diff = process.argv[2];
+	const diff = process.argv[2] || "easy";
+	const noColor = cmdContains("--no-color");
+	debug = cmdContains("--debug");
 
 	stdout.on("resize", handleResize);
 	stdin.on("keypress", keyHandler.eventHandler.bind(keyHandler));
-	game = new Game(diff || "easy");
+	game = new Game(diff, noColor, debug);
 
 	keyHandler.handleKey(
 		"c",
@@ -77,7 +83,7 @@ function main() {
 	});
 
 	keyHandler.handleKey("r", () => {
-		game = new Game("easy");
+		game = new Game("easy", noColor, debug);
 	});
 
 	console.clear();
@@ -100,12 +106,12 @@ async function render(ts: number) {
 	stdout.clearScreenDown();
 
 	// draw frame
-	stdout.write("Game -_-\n\n");
+	stdout.write("Minesweeper\n\n");
 	stdout.write(game.render(size));
 	stdout.write(
-		"\n\nArrow keys - move\nA - flag\nS - reveal\nR - reset\nQ - exit\n\n"
+		"\n\nControls:\n\tArrow keys - move\n\tA - flag\n\tS - reveal\n\tR - reset\n\tQ - exit"
 	);
-	stdout.write(`\n\nFPS: ${Math.round(1 / dt)}`);
+	if (debug) stdout.write(`\n\nFPS: ${Math.round(1 / dt)}`);
 
 	// finalize render loop
 	await new Promise((resolve) => setTimeout(resolve, 1000 / MAX_FPS - dt));

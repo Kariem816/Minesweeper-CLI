@@ -1,4 +1,4 @@
-// import chalk from "chalk";
+import chalk from "chalk";
 import { V2 } from "./math.js";
 import fs from "fs";
 
@@ -15,6 +15,19 @@ function log(text: string) {
 		`${new Date().toLocaleString()}: ${text}\n`
 	);
 }
+
+// 8 colors ranging from bright to dark (brightest to darkest) from chalk
+const colors = [
+	chalk.inverse,
+	chalk.cyan,
+	chalk.greenBright,
+	chalk.redBright,
+	chalk.blueBright,
+	chalk.magentaBright,
+	chalk.cyan.dim,
+	chalk.magenta,
+	chalk.red.dim,
+];
 
 const difficulties: {
 	[key in Difficulty]: { cols: number; rows: number; mines: number };
@@ -70,7 +83,11 @@ export class Game {
 	private startTime: number;
 	private endTime: number;
 
-	constructor(diff: string, public enableLog = false) {
+	constructor(
+		diff: string,
+		private noColor = false,
+		public enableLog = false
+	) {
 		const difficulty = getDiff(diff);
 		this.log("New Game " + difficulty);
 		this.cols = difficulties[difficulty].cols;
@@ -228,9 +245,42 @@ export class Game {
 		);
 	}
 
+	renderCell(row: number, col: number) {
+		const { x: cursorCol, y: cursorRow } = this.cursor;
+		const cell = this.cell(col, row);
+
+		let renderFn: (x: string) => string;
+
+		switch (cell) {
+			case "?":
+				renderFn = this.noColor ? () => cell : chalk.blue;
+				break;
+			case "/":
+				renderFn = this.noColor ? () => cell : chalk.yellow;
+				break;
+			case "X":
+				renderFn = this.noColor ? () => cell : chalk.white;
+				break;
+			case ".":
+				renderFn = this.noColor ? () => cell : chalk.gray;
+				break;
+			case " ":
+				renderFn = this.noColor ? () => cell : chalk.white;
+				break;
+			default:
+				renderFn = this.noColor ? () => cell : colors[parseInt(cell)];
+				break;
+		}
+
+		if (row === cursorRow && col === cursorCol) {
+			return renderFn("[" + cell + "]");
+		} else {
+			return renderFn(" " + cell + " ");
+		}
+	}
+
 	render(ttySize: V2): string {
 		const { x: cols, y: rows } = ttySize;
-		const { x: cursorCol, y: cursorRow } = this.cursor;
 
 		if (this.cols > cols || this.rows > rows) {
 			return `Terminal too small!\nTerminal should be at least ${this.cols}x${this.rows}\n`;
@@ -242,12 +292,7 @@ export class Game {
 			let curr_line = "";
 
 			for (let col = 0; col < this.cols; col++) {
-				// scale is 3 in x and 1 in y
-				if (row === cursorRow && col === cursorCol) {
-					curr_line += "[" + this.cell(col, row) + "]";
-				} else {
-					curr_line += " " + this.cell(col, row) + " ";
-				}
+				curr_line += this.renderCell(row, col);
 			}
 
 			output += curr_line + "\n";
