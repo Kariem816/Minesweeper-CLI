@@ -1,4 +1,5 @@
 import readline from "readline";
+import { parseArgs } from "util";
 
 import { KeyHandler } from "./keyhandlers.js";
 import { Game } from "./game.js";
@@ -13,24 +14,44 @@ readline.emitKeypressEvents(process.stdin);
 if (process.stdin.isTTY) process.stdin.setRawMode(true);
 else throw new Error("stdin is not a TTY");
 
-// const game = new Game("easy");
+// Global variables
 const keyHandler = new KeyHandler();
 let game: Game;
 let size = new V2(stdout.columns, stdout.rows);
-let debug = false;
+
+// Config
+let debug: boolean;
+let diff: string;
+let noColor: boolean;
 
 function handleResize() {
 	size = new V2(stdout.columns, stdout.rows);
 }
 
-function cmdContains(arg: string) {
-	return process.argv.includes(arg);
-}
-
 function main() {
-	const diff = process.argv[2] || "easy";
-	const noColor = cmdContains("--no-color");
-	debug = cmdContains("--debug");
+	try {
+		const { values } = parseArgs({
+			options: {
+				debug: { type: "boolean", short: "d", default: false },
+				"no-color": {
+					type: "boolean",
+					short: "c",
+					default: false,
+				},
+				diff: {
+					type: "string",
+					short: "D",
+					default: "easy",
+				},
+			},
+		});
+		debug = values.debug!;
+		noColor = values["no-color"]!;
+		diff = values.diff!;
+	} catch (e: any) {
+		console.log("\n%s\n", e.message);
+		process.exit(1);
+	}
 
 	stdout.on("resize", handleResize);
 	stdin.on("keypress", keyHandler.eventHandler.bind(keyHandler));
