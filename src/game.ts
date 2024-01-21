@@ -72,6 +72,7 @@ function cellToChar(cell: Cell, number: number, state: CellState) {
 
 export class Game {
 	public difficulty: Difficulty;
+	private started = false;
 	private cols: number;
 	private rows: number;
 	private cursor = new V2(0, 0);
@@ -105,7 +106,7 @@ export class Game {
 		this.board = [];
 		this.boardNumber = [];
 		this.boardState = [];
-		this.createBoard();
+		this.createBoardInitial();
 	}
 
 	restart(diff: string = this.difficulty) {
@@ -123,7 +124,8 @@ export class Game {
 		this.board.length = 0;
 		this.boardNumber.length = 0;
 		this.boardState.length = 0;
-		this.createBoard();
+		this.started = false;
+		this.createBoardInitial();
 	}
 
 	private log(text: string) {
@@ -132,17 +134,42 @@ export class Game {
 		}
 	}
 
-	private createBoard() {
+	private createBoardInitial() {
 		// Initialize board
 		this.board = Array(this.rows)
 			.fill(0)
 			.map(() => Array(this.cols).fill("empty"));
+
+		// Initialize boardState
+		this.boardState = Array(this.rows)
+			.fill(0)
+			.map(() => Array(this.cols).fill("hidden"));
+
+		// Initialize boardNumber
+		this.boardNumber = Array(this.rows)
+			.fill(0)
+			.map(() => Array(this.cols).fill(0));
+	}
+
+	private createBoard() {
+		// Initialize board
+		if (this.started) return;
+
 		let minesPlaced = 0;
+		const freeDist = Math.floor(
+			Math.sqrt((this.cols * this.rows) / this.mines)
+		);
+		const { x: cursorX, y: cursorY } = this.cursor;
+
+		function calcDist(x1: number, y1: number) {
+			return Math.sqrt((cursorX - x1) ** 2 + (cursorY - y1) ** 2);
+		}
 
 		// Place mines randomly
 		while (minesPlaced < this.mines) {
 			const x = Math.floor(Math.random() * this.cols);
 			const y = Math.floor(Math.random() * this.rows);
+			if (calcDist(x, y) < freeDist) continue;
 			if (this.board[y][x] === "empty") {
 				this.minesLocations.push(new V2(x, y));
 				this.board[y][x] = "mine";
@@ -151,9 +178,6 @@ export class Game {
 		}
 
 		// Calculate adjacent mines
-		this.boardNumber = Array(this.rows)
-			.fill(0)
-			.map(() => Array(this.cols).fill(0));
 		for (let row = 0; row < this.rows; row++) {
 			for (let col = 0; col < this.cols; col++) {
 				// For each cell
@@ -181,10 +205,7 @@ export class Game {
 			}
 		}
 
-		// Initialize boardState
-		this.boardState = Array(this.rows)
-			.fill(0)
-			.map(() => Array(this.cols).fill("hidden"));
+		this.started = true;
 	}
 
 	flag() {
@@ -204,6 +225,7 @@ export class Game {
 
 	reveal(loc: V2 = this.cursor) {
 		if (this._gameOver) return;
+		if (!this.started) this.createBoard();
 		if (this.startTime === 0) this.startTime = Date.now();
 
 		const { x: col, y: row } = loc;
@@ -368,6 +390,10 @@ export class Game {
 
 		output += "\n";
 		output += `Time: ${this.timef}\n`;
+		const freeDist = Math.floor(
+			Math.sqrt((this.cols * this.rows) / this.mines)
+		);
+		output += `Free Distance: ${freeDist}\n`;
 
 		return output;
 	}
